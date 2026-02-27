@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import { useNavigate, Outlet } from "react-router-dom";
+import { useNavigate, Outlet, Link } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 
 function AdminLayout() {
@@ -20,7 +20,21 @@ function AdminLayout() {
 
       <hr />
 
-      {/* This is where child pages will render */}
+      {/* Navigation Menu */}
+      <div style={{ marginBottom: "20px" }}>
+        <Link to="/admin/users">Users</Link> |{" "}
+        <Link to="/admin/academic-years">Academic Years</Link> |{" "}
+        <Link to="/admin/grades">Grades</Link> |{" "}
+        <Link to="/admin/sections">Sections</Link> |{" "}
+        <Link to="/admin/subjects">Subjects</Link> |{" "}
+        <Link to="/admin/curriculum">Curriculum</Link> |{" "}
+        <Link to="/admin/students">Students</Link> |{" "}
+        <Link to="/admin/enrollments">Enrollments</Link>
+      </div>
+
+      <hr />
+
+      {/* Child Page Render */}
       <Outlet />
     </div>
   );

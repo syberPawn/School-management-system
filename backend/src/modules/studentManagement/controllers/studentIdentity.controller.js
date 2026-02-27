@@ -3,16 +3,14 @@ const {
   updateStudentIdentity,
   deactivateStudentIdentity,
   getStudentProfile,
+  listStudents,
 
   StudentNotFoundError,
-  DuplicateAdmissionNumberError,
-  UnauthorizedProfileAccessError,
+  AdmissionNumberAlreadyExistsError,
+  StudentIdentityValidationError,
+  UnauthorizedStudentProfileAccessError,
 } = require("../services/studentIdentity.service");
-const {
-  validateCreateStudent,
-  validateUpdateStudent,
-  ValidationError,
-} = require("../validations/student.validation");
+
 const {
   verifyAuthenticated,
   verifyRole,
@@ -36,8 +34,7 @@ const create = async (req, res) => {
     await verifyAuthenticated(req);
     verifyRole(req, ["ADMIN"]);
 
-    validateCreateStudent(req.body);
-    const result = await createStudentIdentity(req.body);
+    const result = await createStudentIdentity(req.body, req.user.userId);
 
     return res.status(201).json(result);
   } catch (error) {
@@ -53,16 +50,15 @@ const create = async (req, res) => {
       return res.status(403).json({ message: error.message });
     }
 
-    if (error instanceof DuplicateAdmissionNumberError) {
+    if (error instanceof StudentIdentityValidationError) {
+      return res.status(400).json({ message: error.message });
+    }
+
+    if (error instanceof AdmissionNumberAlreadyExistsError) {
       return res.status(409).json({ message: error.message });
     }
 
-    if (error instanceof StudentNotFoundError) {
-      return res.status(404).json({ message: error.message });
-    }
-    if (error instanceof ValidationError) {
-      return res.status(400).json({ message: error.message });
-    }
+    console.error("Student Identity Create Error:", error);
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -78,8 +74,11 @@ const update = async (req, res) => {
     await verifyAuthenticated(req);
     verifyRole(req, ["ADMIN"]);
 
-    validateUpdateStudent(req.body);
-    const result = await updateStudentIdentity(req.params.id, req.body);
+    const result = await updateStudentIdentity(
+      req.params.id,
+      req.body,
+      req.user.userId,
+    );
 
     return res.status(200).json(result);
   } catch (error) {
@@ -98,9 +97,12 @@ const update = async (req, res) => {
     if (error instanceof StudentNotFoundError) {
       return res.status(404).json({ message: error.message });
     }
-    if (error instanceof ValidationError) {
+
+    if (error instanceof StudentIdentityValidationError) {
       return res.status(400).json({ message: error.message });
     }
+
+    console.error("Student Identity Update Error:", error);
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -116,7 +118,10 @@ const deactivate = async (req, res) => {
     await verifyAuthenticated(req);
     verifyRole(req, ["ADMIN"]);
 
-    const result = await deactivateStudentIdentity(req.params.id);
+    const result = await deactivateStudentIdentity(
+      req.params.id,
+      req.user.userId,
+    );
 
     return res.status(200).json(result);
   } catch (error) {
@@ -135,24 +140,21 @@ const deactivate = async (req, res) => {
     if (error instanceof StudentNotFoundError) {
       return res.status(404).json({ message: error.message });
     }
-    if (error instanceof ValidationError) {
-      return res.status(400).json({ message: error.message });
-    }
+
+    console.error("Student Identity Deactivate Error:", error);
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
 /*
- /*
   =====================================
-  GET /students/:id/profile
+  GET /students/:id
   =====================================
 */
 
 const getProfile = async (req, res) => {
   try {
     await verifyAuthenticated(req);
-    verifyRole(req, ["ADMIN", "TEACHER", "STUDENT"]);
 
     const result = await getStudentProfile(req.user, req.params.id);
 
@@ -174,14 +176,43 @@ const getProfile = async (req, res) => {
       return res.status(404).json({ message: error.message });
     }
 
-    if (error instanceof UnauthorizedProfileAccessError) {
+    if (error instanceof UnauthorizedStudentProfileAccessError) {
       return res.status(403).json({ message: error.message });
     }
 
-    if (error instanceof ValidationError) {
-      return res.status(400).json({ message: error.message });
+    console.error("Student Profile Error:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+/*
+  =====================================
+  GET /students
+  =====================================
+*/
+
+const getAll = async (req, res) => {
+  try {
+    await verifyAuthenticated(req);
+    verifyRole(req, ["ADMIN"]);
+
+    const result = await listStudents();
+
+    return res.status(200).json(result);
+  } catch (error) {
+    if (
+      error instanceof AuthenticationFailedError ||
+      error instanceof AccountDeactivatedError ||
+      error instanceof SessionExpiredError
+    ) {
+      return res.status(401).json({ message: error.message });
     }
 
+    if (error instanceof AuthorizationError) {
+      return res.status(403).json({ message: error.message });
+    }
+
+    console.error("Student List Error:", error);
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -191,4 +222,5 @@ module.exports = {
   update,
   deactivate,
   getProfile,
+  getAll,
 };

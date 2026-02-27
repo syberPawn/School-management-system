@@ -8,9 +8,10 @@ import GradesPage from "./pages/GradesPage";
 import SectionsPage from "./pages/SectionsPage";
 import SubjectsPage from "./pages/SubjectsPage";
 import CurriculumPage from "./pages/CurriculumPage";
-import StudentsPage from "./pages/studentsPage";
-import CreateStudentPage from "./pages/CreateStudentPage";
+import StudentIdentitiesPage from "./pages/StudentIdentitiesPage";
+import StudentEnrollmentsPage from "./pages/StudentEnrollmentsPage";
 import StudentProfilePage from "./pages/StudentProfilePage";
+import TeacherAssignmentPage from "./pages/teacherAssignmentPage";
 
 function App() {
   return (
@@ -32,9 +33,10 @@ function App() {
         <Route path="sections" element={<SectionsPage />} />
         <Route path="subjects" element={<SubjectsPage />} />
         <Route path="curriculum" element={<CurriculumPage />} />
-        <Route path="students" element={<StudentsPage />} />
-        <Route path="students/create" element={<CreateStudentPage />} />
-        <Route path="students/:id/profile" element={<StudentProfilePage />} />
+        <Route path="students" element={<StudentIdentitiesPage />} />
+        <Route path="enrollments" element={<StudentEnrollmentsPage />} />
+        <Route path="teacher-assignments" element={<TeacherAssignmentPage />} />
+        <Route path="students/:id" element={<StudentProfilePage />} />
       </Route>
 
       <Route

@@ -1,71 +1,81 @@
-const Student = require("../models/student.model");
-const Enrollment = require("../models/enrollment.model");
+const Student = require("../models/students.model");
 
 /*
-  =====================================
+  ======================================
   Student Identity Domain Errors
-  =====================================
+  ======================================
 */
 
 class StudentNotFoundError extends Error {}
-class DuplicateAdmissionNumberError extends Error {}
-class UnauthorizedProfileAccessError extends Error {}
+class AdmissionNumberAlreadyExistsError extends Error {}
+class StudentIdentityValidationError extends Error {}
+class UnauthorizedStudentProfileAccessError extends Error {}
 
 /*
-  =====================================
+  ======================================
   StudentIdentityService
-  =====================================
+  ======================================
 */
 
 /*
-  FR-SM-01
-  Create Student Identity
+  1️⃣ createStudentIdentity
+  Implements FR-SM-01
 */
-const createStudentIdentity = async (data) => {
+const createStudentIdentity = async (data, adminId) => {
   const { userId, fullName, dateOfBirth, gender, admissionNumber } = data;
 
-  // 1️⃣ Required validation
+  // 1️⃣ Required Validation
   if (!userId || !fullName || !dateOfBirth || !gender || !admissionNumber) {
-    throw new Error("Missing required student identity fields");
+    throw new StudentIdentityValidationError(
+      "Missing required student identity fields",
+    );
   }
 
-  try {
-    // 2️⃣ Create student (identityStatus defaults to ACTIVE)
-    const student = await Student.create({
-      userId,
-      fullName,
-      dateOfBirth,
-      gender,
-      admissionNumber,
-      identityStatus: "ACTIVE",
-    });
-
-    return student;
-  } catch (error) {
-    // 3️⃣ Handle duplicate admission number (BR-SM-02)
-    if (error.code === 11000) {
-      throw new DuplicateAdmissionNumberError(
-        "Admission number must be unique",
-      );
-    }
-
-    throw error;
+  // 2️⃣ Admission Number Uniqueness (BR-SM-02)
+  const existingAdmission = await Student.findOne({ admissionNumber });
+  if (existingAdmission) {
+    throw new AdmissionNumberAlreadyExistsError(
+      "Admission number already exists",
+    );
   }
+
+  // 3️⃣ Create Identity (identityStatus forced to ACTIVE)
+  const student = await Student.create({
+    userId,
+    fullName,
+    dateOfBirth,
+    gender,
+    admissionNumber,
+    identityStatus: "ACTIVE",
+  });
+
+  return student;
 };
 
 /*
-  FR-SM-02
-  Update Student Identity
+  2️⃣ updateStudentIdentity
+  Implements FR-SM-02
 */
-const updateStudentIdentity = async (studentId, data) => {
-  // 1️⃣ Validate student exists
+const updateStudentIdentity = async (studentId, data, adminId) => {
   const student = await Student.findById(studentId);
 
   if (!student) {
-    throw new StudentNotFoundError("Student not found");
+    throw new StudentNotFoundError("Student identity not found");
   }
 
-  // 2️⃣ Update allowed fields only (validation layer restricts payload)
+  // Immutable fields protection (BR-SM-09)
+  if (
+    data.admissionNumber !== undefined ||
+    data.dateOfBirth !== undefined ||
+    data.identityStatus !== undefined ||
+    data._id !== undefined
+  ) {
+    throw new StudentIdentityValidationError(
+      "Attempt to modify immutable student identity fields",
+    );
+  }
+
+  // Update allowed fields only
   if (data.fullName !== undefined) {
     student.fullName = data.fullName;
   }
@@ -80,23 +90,17 @@ const updateStudentIdentity = async (studentId, data) => {
 };
 
 /*
-  FR-SM-03
-  Deactivate Student Identity (Soft)
+  3️⃣ deactivateStudentIdentity
+  Implements FR-SM-03
 */
-const deactivateStudentIdentity = async (studentId) => {
-  // 1️⃣ Validate student exists
+const deactivateStudentIdentity = async (studentId, adminId) => {
   const student = await Student.findById(studentId);
 
   if (!student) {
-    throw new StudentNotFoundError("Student not found");
+    throw new StudentNotFoundError("Student identity not found");
   }
 
-  // 2️⃣ If already INACTIVE → return silently
-  if (student.identityStatus === "INACTIVE") {
-    return student;
-  }
-
-  // 3️⃣ Soft deactivate only (BR-SM-14)
+  // Soft deactivate only (BR-SM-14)
   student.identityStatus = "INACTIVE";
 
   await student.save();
@@ -105,66 +109,43 @@ const deactivateStudentIdentity = async (studentId) => {
 };
 
 /*
-  FR-SM-07
-  Get Student Profile
-  NOTE:
-  Access enforcement will later require enrollment lookup.
-  For now, identity retrieval only.
-*/
-/*
-  FR-SM-07
-  Get Student Profile
+  4️⃣ getStudentProfile
+  Implements FR-SM-07
+  (Authorization scope enforced at service layer)
 */
 const getStudentProfile = async (requester, studentId) => {
-  // 1️⃣ Validate student exists
   const student = await Student.findById(studentId);
 
   if (!student) {
-    throw new StudentNotFoundError("Student not found");
+    throw new StudentNotFoundError("Student identity not found");
   }
 
-  // 2️⃣ Role-based access enforcement (DS-SM-08)
+  // Role-based access (DS-SM-08)
+  if (requester.role === "ADMIN") {
+    return student;
+  }
 
   if (requester.role === "STUDENT") {
-    if (student.userId.toString() !== requester.userId.toString()) {
-      throw new UnauthorizedProfileAccessError(
-        "Students can only view their own profile",
+    if (requester._id.toString() !== student.userId.toString()) {
+      throw new UnauthorizedStudentProfileAccessError(
+        "Access denied to student profile",
       );
     }
+    return student;
   }
 
-  if (requester.role === "TEACHER") {
-    throw new UnauthorizedProfileAccessError(
-      "Teacher access enforcement pending Teacher Management module",
-    );
-  }
+  // TEACHER access validation will be enforced in Enrollment Service
+  // (because it requires class-based scope validation)
 
-  // ADMIN allowed without restriction
+  return student;
+};
 
-  // 3️⃣ Fetch current ACTIVE enrollment (optional)
-  const activeEnrollment = await Enrollment.findOne({
-    studentId: student._id,
-    enrollmentStatus: "ACTIVE",
-  });
-
-  return {
-    identity: {
-      _id: student._id,
-      fullName: student.fullName,
-      dateOfBirth: student.dateOfBirth,
-      gender: student.gender,
-      admissionNumber: student.admissionNumber,
-      identityStatus: student.identityStatus,
-    },
-    activeEnrollment: activeEnrollment
-      ? {
-          _id: activeEnrollment._id,
-          academicYearId: activeEnrollment.academicYearId,
-          sectionId: activeEnrollment.sectionId,
-          enrollmentStatus: activeEnrollment.enrollmentStatus,
-        }
-      : null,
-  };
+/*
+  5️⃣ listStudents
+  For Enrollment UI
+*/
+const listStudents = async () => {
+  return await Student.find({ identityStatus: "ACTIVE" });
 };
 
 module.exports = {
@@ -172,8 +153,10 @@ module.exports = {
   updateStudentIdentity,
   deactivateStudentIdentity,
   getStudentProfile,
+  listStudents,
 
   StudentNotFoundError,
-  DuplicateAdmissionNumberError,
-  UnauthorizedProfileAccessError,
+  AdmissionNumberAlreadyExistsError,
+  StudentIdentityValidationError,
+  UnauthorizedStudentProfileAccessError,
 };

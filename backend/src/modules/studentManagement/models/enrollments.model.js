@@ -5,25 +5,25 @@ const { Schema } = mongoose;
 const enrollmentSchema = new Schema(
   {
     studentId: {
-      type: mongoose.Schema.Types.ObjectId,
-      required: true,
+      type: Schema.Types.ObjectId,
       ref: "Student",
+      required: true,
       immutable: true,
       index: true,
     },
 
     academicYearId: {
-      type: mongoose.Schema.Types.ObjectId,
-      required: true,
+      type: Schema.Types.ObjectId,
       ref: "AcademicYear",
+      required: true,
       immutable: true,
       index: true,
     },
 
     sectionId: {
-      type: mongoose.Schema.Types.ObjectId,
-      required: true,
+      type: Schema.Types.ObjectId,
       ref: "Section",
+      required: true,
       index: true,
     },
 
@@ -41,19 +41,9 @@ const enrollmentSchema = new Schema(
 );
 
 /*
-  =====================================
-  Compound Unique Constraint
-  One enrollment per student per academic year
-  (BR-SM-04)
-  =====================================
+  Compound Unique Index
+  Enforces: One enrollment per student per academic year (BR-SM-04)
 */
 enrollmentSchema.index({ studentId: 1, academicYearId: 1 }, { unique: true });
-
-/*
-  Performance Indexes
-*/
-// enrollmentSchema.index({ academicYearId: 1 });
-// enrollmentSchema.index({ sectionId: 1 });
-// enrollmentSchema.index({ academicYearId: 1, sectionId: 1 });
 
 module.exports = mongoose.model("Enrollment", enrollmentSchema);

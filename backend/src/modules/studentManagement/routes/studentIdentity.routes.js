@@ -6,20 +6,17 @@ const {
   update,
   deactivate,
   getProfile,
+  getAll,
 } = require("../controllers/studentIdentity.controller");
 
 /*
-  =====================================
   Student Identity Routes
-  =====================================
 */
 
-router.post("/", create);
-
-router.patch("/:id", update);
-
-router.patch("/:id/deactivate", deactivate);
-
-router.get("/:id/profile", getProfile);
+router.post("/students", create);
+router.patch("/students/:id", update);
+router.patch("/students/:id/deactivate", deactivate);
+router.get("/students", getAll);
+router.get("/students/:id", getProfile);
 
 module.exports = router;

@@ -1,71 +1,106 @@
+const Joi = require("joi");
+
 /*
-  Student Identity Validation Layer
-  Handles payload structure validation only.
-  Business rules enforced in Service layer.
+  ENUMS
 */
 
-const allowedCreateFields = [
-  "userId",
-  "fullName",
-  "dateOfBirth",
-  "gender",
-  "admissionNumber",
+const identityStatusEnum = ["ACTIVE", "INACTIVE"];
+const genderEnum = ["MALE", "FEMALE", "OTHER"];
+const enrollmentStatusEnum = [
+  "ACTIVE",
+  "PROMOTED",
+  "REPEATING",
+  "WITHDRAWN",
+  "COMPLETED",
 ];
 
-const allowedUpdateFields = ["fullName", "gender"];
-
-class ValidationError extends Error {}
 /*
-  Utility: Check for unexpected fields
+  ==============================
+  STUDENT IDENTITY VALIDATIONS
+  ==============================
 */
-function rejectUnexpectedFields(payload, allowedFields) {
-  const payloadKeys = Object.keys(payload);
-
-  const unexpectedFields = payloadKeys.filter(
-    (key) => !allowedFields.includes(key),
-  );
-
-  if (unexpectedFields.length > 0) {
-    throw new ValidationError(
-      `Unexpected fields: ${unexpectedFields.join(", ")}`,
-    );
-  }
-}
 
 /*
-  Validate Create Student Identity
+  Create Student Identity
+  - identityStatus must NOT be accepted from client
 */
-function validateCreateStudent(payload) {
-  rejectUnexpectedFields(payload, allowedCreateFields);
-
-  const { userId, fullName, dateOfBirth, gender, admissionNumber } = payload;
-
-  if (!userId) throw new ValidationError("userId is required");
-  if (!fullName) throw new ValidationError("fullName is required");
-  if (!dateOfBirth) throw new ValidationError("dateOfBirth is required");
-  if (!gender) throw new ValidationError("gender is required");
-  if (!admissionNumber)
-    throw new ValidationError("admissionNumber is required");
-
-  const allowedGenders = ["MALE", "FEMALE", "OTHER"];
-  if (!allowedGenders.includes(gender)) {
-    throw new ValidationError("Invalid gender value");
-  }
-}
+const createStudentIdentitySchema = Joi.object({
+  userId: Joi.string().required(),
+  fullName: Joi.string().required(),
+  dateOfBirth: Joi.date().required(),
+  gender: Joi.string()
+    .valid(...genderEnum)
+    .required(),
+  admissionNumber: Joi.string().required(),
+}).unknown(false);
 
 /*
-  Validate Update Student Identity
+  Update Student Identity
+  - Immutable fields must NOT be accepted
 */
-function validateUpdateStudent(payload) {
-  rejectUnexpectedFields(payload, allowedUpdateFields);
+const updateStudentIdentitySchema = Joi.object({
+  fullName: Joi.string().optional(),
+  gender: Joi.string()
+    .valid(...genderEnum)
+    .optional(),
+})
+  .min(1)
+  .unknown(false);
 
-  if (Object.keys(payload).length === 0) {
-    throw new ValidationError("No valid fields provided for update");
-  }
-}
+/*
+  Deactivate Student Identity
+  - No body required
+*/
+const deactivateStudentIdentitySchema = Joi.object({}).unknown(false);
+
+/*
+  ==============================
+  ENROLLMENT VALIDATIONS
+  ==============================
+*/
+
+/*
+  Create Enrollment
+  - enrollmentStatus must NOT be accepted from client
+*/
+const createEnrollmentSchema = Joi.object({
+  studentId: Joi.string().required(),
+  academicYearId: Joi.string().required(),
+  sectionId: Joi.string().required(),
+}).unknown(false);
+
+/*
+  Update Enrollment Class
+*/
+const updateEnrollmentClassSchema = Joi.object({
+  sectionId: Joi.string().required(),
+}).unknown(false);
+
+/*
+  Update Enrollment Status
+*/
+const updateEnrollmentStatusSchema = Joi.object({
+  enrollmentStatus: Joi.string()
+    .valid(...enrollmentStatusEnum)
+    .required(),
+}).unknown(false);
+
+/*
+  List Students (Query Validation)
+*/
+const listStudentsSchema = Joi.object({
+  academicYearId: Joi.string().required(),
+  sectionId: Joi.string().optional(),
+  name: Joi.string().optional(),
+  admissionNumber: Joi.string().optional(),
+}).unknown(false);
 
 module.exports = {
-  validateCreateStudent,
-  validateUpdateStudent,
-  ValidationError,
+  createStudentIdentitySchema,
+  updateStudentIdentitySchema,
+  deactivateStudentIdentitySchema,
+  createEnrollmentSchema,
+  updateEnrollmentClassSchema,
+  updateEnrollmentStatusSchema,
+  listStudentsSchema,
 };

@@ -1,18 +1,14 @@
 const express = require("express");
 const router = express.Router();
 
-/*
-  =====================================
-  Student Management Route Aggregator
-  =====================================
-*/
-
 const studentIdentityRoutes = require("./routes/studentIdentity.routes");
 const studentEnrollmentRoutes = require("./routes/studentEnrollment.routes");
 
+/*
+  Aggregate Student Management Routes
+*/
 
-// Mount sub-routes
-router.use("/students", studentIdentityRoutes);
-router.use("/enrollments", studentEnrollmentRoutes);
+router.use(studentIdentityRoutes);
+router.use(studentEnrollmentRoutes);
 
 module.exports = router;

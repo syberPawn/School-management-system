@@ -4,26 +4,18 @@ const {
   updateEnrollmentStatus,
   listStudents,
 
-  AccessDeniedError,
-  FeatureNotImplementedError,
   EnrollmentNotFoundError,
-  DuplicateEnrollmentError,
+  EnrollmentAlreadyExistsError,
   AcademicYearNotFoundError,
+  AcademicYearNotActiveError,
+  AcademicYearInactiveWindowError,
   SectionNotFoundError,
+  SectionAcademicYearMismatchError,
   StudentNotFoundError,
-  AcademicYearInactiveError,
-  SectionYearMismatchError,
-  OverlappingActiveEnrollmentError,
-  EnrollmentStatusRestrictionError,
+  InvalidEnrollmentStatusTransitionError,
+  ActiveEnrollmentOverlapError,
+  EnrollmentClassUpdateNotAllowedError,
 } = require("../services/studentEnrollment.service");
-
-const {
-  validateCreateEnrollment,
-  validateEnrollmentClassUpdate,
-  validateEnrollmentStatusUpdate,
-  validateListStudentsFilters,
-  EnrollmentValidationError,
-} = require("../validations/enrollment.validation");
 
 const {
   verifyAuthenticated,
@@ -48,13 +40,10 @@ const create = async (req, res) => {
     await verifyAuthenticated(req);
     verifyRole(req, ["ADMIN"]);
 
-    validateCreateEnrollment(req.body);
-
-    const result = await createEnrollment(req.body);
+    const result = await createEnrollment(req.body, req.user.userId);
 
     return res.status(201).json(result);
   } catch (error) {
-    // Authentication errors
     if (
       error instanceof AuthenticationFailedError ||
       error instanceof AccountDeactivatedError ||
@@ -63,42 +52,38 @@ const create = async (req, res) => {
       return res.status(401).json({ message: error.message });
     }
 
-    // Authorization error
     if (error instanceof AuthorizationError) {
       return res.status(403).json({ message: error.message });
     }
 
-    // Validation errors
-    if (error instanceof EnrollmentValidationError) {
-      return res.status(400).json({ message: error.message });
-    }
-
-    // Not found errors
     if (
+      error instanceof StudentNotFoundError ||
       error instanceof AcademicYearNotFoundError ||
-      error instanceof SectionNotFoundError ||
-      error instanceof StudentNotFoundError
+      error instanceof SectionNotFoundError
     ) {
       return res.status(404).json({ message: error.message });
     }
 
-    // Conflict errors
-    if (error instanceof DuplicateEnrollmentError) {
-      return res.status(409).json({ message: error.message });
-    }
-
-    // Business rule violations
     if (
-      error instanceof AcademicYearInactiveError ||
-      error instanceof SectionYearMismatchError ||
-      error instanceof OverlappingActiveEnrollmentError
+      error instanceof AcademicYearNotActiveError ||
+      error instanceof AcademicYearInactiveWindowError ||
+      error instanceof SectionAcademicYearMismatchError
     ) {
       return res.status(400).json({ message: error.message });
     }
 
+    if (
+      error instanceof EnrollmentAlreadyExistsError ||
+      error instanceof ActiveEnrollmentOverlapError
+    ) {
+      return res.status(409).json({ message: error.message });
+    }
+
+    console.error("Enrollment Create Error:", error);
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
 /*
   =====================================
   PATCH /enrollments/:id/class
@@ -110,8 +95,6 @@ const updateClass = async (req, res) => {
     await verifyAuthenticated(req);
     verifyRole(req, ["ADMIN"]);
 
-    validateEnrollmentClassUpdate(req.body);
-
     const result = await updateEnrollmentClass(
       req.params.id,
       req.body.sectionId,
@@ -119,7 +102,6 @@ const updateClass = async (req, res) => {
 
     return res.status(200).json(result);
   } catch (error) {
-    // Authentication errors
     if (
       error instanceof AuthenticationFailedError ||
       error instanceof AccountDeactivatedError ||
@@ -128,37 +110,30 @@ const updateClass = async (req, res) => {
       return res.status(401).json({ message: error.message });
     }
 
-    // Authorization error
     if (error instanceof AuthorizationError) {
       return res.status(403).json({ message: error.message });
     }
 
-    // Validation errors
-    if (error instanceof EnrollmentValidationError) {
-      return res.status(400).json({ message: error.message });
-    }
-
-    // Not found
     if (
       error instanceof EnrollmentNotFoundError ||
+      error instanceof AcademicYearNotFoundError ||
       error instanceof SectionNotFoundError
     ) {
       return res.status(404).json({ message: error.message });
     }
 
-    // Business rule violations
-    if (error instanceof SectionYearMismatchError) {
+    if (
+      error instanceof EnrollmentClassUpdateNotAllowedError ||
+      error instanceof SectionAcademicYearMismatchError
+    ) {
       return res.status(400).json({ message: error.message });
     }
 
-    // ACTIVE status violation
-    if (error instanceof EnrollmentStatusRestrictionError) {
-      return res.status(400).json({ message: error.message });
-    }
-
+    console.error("Enrollment Class Update Error:", error);
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
 /*
   =====================================
   PATCH /enrollments/:id/status
@@ -170,8 +145,6 @@ const updateStatus = async (req, res) => {
     await verifyAuthenticated(req);
     verifyRole(req, ["ADMIN"]);
 
-    validateEnrollmentStatusUpdate(req.body);
-
     const result = await updateEnrollmentStatus(
       req.params.id,
       req.body.enrollmentStatus,
@@ -179,7 +152,6 @@ const updateStatus = async (req, res) => {
 
     return res.status(200).json(result);
   } catch (error) {
-    // Authentication errors
     if (
       error instanceof AuthenticationFailedError ||
       error instanceof AccountDeactivatedError ||
@@ -188,17 +160,10 @@ const updateStatus = async (req, res) => {
       return res.status(401).json({ message: error.message });
     }
 
-    // Authorization error
     if (error instanceof AuthorizationError) {
       return res.status(403).json({ message: error.message });
     }
 
-    // Validation errors
-    if (error instanceof EnrollmentValidationError) {
-      return res.status(400).json({ message: error.message });
-    }
-
-    // Not found
     if (
       error instanceof EnrollmentNotFoundError ||
       error instanceof AcademicYearNotFoundError
@@ -206,15 +171,19 @@ const updateStatus = async (req, res) => {
       return res.status(404).json({ message: error.message });
     }
 
-    // Business rule violations
     if (
-      error instanceof AcademicYearInactiveError ||
-      error instanceof OverlappingActiveEnrollmentError ||
-      error instanceof EnrollmentStatusRestrictionError
+      error instanceof InvalidEnrollmentStatusTransitionError ||
+      error instanceof AcademicYearNotActiveError ||
+      error instanceof AcademicYearInactiveWindowError
     ) {
       return res.status(400).json({ message: error.message });
     }
 
+    if (error instanceof ActiveEnrollmentOverlapError) {
+      return res.status(409).json({ message: error.message });
+    }
+
+    console.error("Enrollment Status Update Error:", error);
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -225,18 +194,14 @@ const updateStatus = async (req, res) => {
   =====================================
 */
 
-const list = async (req, res) => {
+const getAll = async (req, res) => {
   try {
     await verifyAuthenticated(req);
-    verifyRole(req, ["ADMIN", "TEACHER", "STUDENT"]);
-
-    validateListStudentsFilters(req.query);
 
     const result = await listStudents(req.query, req.user);
 
     return res.status(200).json(result);
   } catch (error) {
-    // Authentication errors
     if (
       error instanceof AuthenticationFailedError ||
       error instanceof AccountDeactivatedError ||
@@ -245,29 +210,15 @@ const list = async (req, res) => {
       return res.status(401).json({ message: error.message });
     }
 
-    // Authorization error
     if (error instanceof AuthorizationError) {
       return res.status(403).json({ message: error.message });
     }
 
-    // Validation error
-    if (error instanceof EnrollmentValidationError) {
-      return res.status(400).json({ message: error.message });
-    }
-
-    // Not found
     if (error instanceof AcademicYearNotFoundError) {
       return res.status(404).json({ message: error.message });
     }
 
-    // Access control
-    if (
-      error instanceof AccessDeniedError ||
-      error instanceof FeatureNotImplementedError
-    ) {
-      return res.status(403).json({ message: error.message });
-    }
-
+    console.error("Enrollment List Error:", error);
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -276,5 +227,5 @@ module.exports = {
   create,
   updateClass,
   updateStatus,
-  list,
+  getAll,
 };

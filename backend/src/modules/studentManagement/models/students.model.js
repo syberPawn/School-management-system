@@ -5,9 +5,9 @@ const { Schema } = mongoose;
 const studentSchema = new Schema(
   {
     userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      required: true,
+      type: Schema.Types.ObjectId,
       ref: "User",
+      required: true,
       immutable: true,
       index: true,
     },
@@ -34,8 +34,8 @@ const studentSchema = new Schema(
     admissionNumber: {
       type: String,
       required: true,
-      immutable: true,
       unique: true,
+      immutable: true,
       trim: true,
       index: true,
     },
@@ -52,11 +52,5 @@ const studentSchema = new Schema(
     timestamps: true,
   },
 );
-
-/*
-  Performance Indexes
-*/
-// studentSchema.index({ fullName: 1 });
-// studentSchema.index({ identityStatus: 1 });
 
 module.exports = mongoose.model("Student", studentSchema);

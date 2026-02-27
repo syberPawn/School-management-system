@@ -1,38 +1,40 @@
-import axiosInstance from "./axiosInstance";
+import axios from "./axiosInstance";
 
 /*
-  =====================================
-  Student Identity API
-  =====================================
+=====================================
+Student Identity API Layer
+=====================================
+Pure HTTP communication.
+No validation logic.
+No state logic.
+No auth logic.
 */
 
-// FR-SM-01
+// POST /students
 export const createStudent = async (data) => {
-  const response = await axiosInstance.post("/students", data);
+  const response = await axios.post("/students", data);
   return response.data;
 };
 
-// FR-SM-02
-export const updateStudent = async (studentId, data) => {
-  const response = await axiosInstance.patch(`/students/${studentId}`, data);
+// PATCH /students/:id
+export const updateStudent = async (id, data) => {
+  const response = await axios.patch(`/students/${id}`, data);
   return response.data;
 };
 
-// FR-SM-03
-export const deactivateStudent = async (studentId) => {
-  const response = await axiosInstance.patch(
-    `/students/${studentId}/deactivate`,
-  );
+// PATCH /students/:id/deactivate
+export const deactivateStudent = async (id) => {
+  const response = await axios.patch(`/students/${id}/deactivate`);
   return response.data;
 };
 
-// FR-SM-07
-export const getStudentById = async (studentId) => {
-  const response = await axiosInstance.get(`/students/${studentId}`);
+// GET /students/:id
+export const fetchStudentProfile = async (id) => {
+  const response = await axios.get(`/students/${id}`);
   return response.data;
 };
 
-export const getStudentProfile = async (studentId) => {
-  const response = await axiosInstance.get(`/students/${studentId}/profile`);
+export const fetchStudents = async () => {
+  const response = await axios.get("/students");
   return response.data;
 };

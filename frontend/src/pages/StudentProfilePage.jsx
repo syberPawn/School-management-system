@@ -1,76 +1,54 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { getStudentProfile } from "../api/student.api";
+import { fetchStudentProfile } from "../api/student.api";
 
-const StudentProfilePage = () => {
+function StudentProfilePage() {
   const { id } = useParams();
+  const [student, setStudent] = useState(null);
+  const [message, setMessage] = useState("");
 
-  const [profile, setProfile] = useState(null);
-  const [error, setError] = useState("");
+  const loadProfile = async () => {
+    try {
+      const data = await fetchStudentProfile(id);
+      setStudent(data);
+    } catch (error) {
+      if (error.response) {
+        setMessage(error.response.data.message);
+      } else {
+        setMessage("Error loading profile");
+      }
+    }
+  };
 
   useEffect(() => {
-    const loadProfile = async () => {
-      try {
-        const data = await getStudentProfile(id);
-        setProfile(data);
-      } catch (err) {
-        setError(err.response?.data?.message || "Failed to load profile");
-      }
-    };
-
     loadProfile();
-  }, [id]);
+  }, []);
 
-  if (error) {
-    return <p style={{ color: "red", padding: "20px" }}>{error}</p>;
-  }
-
-  if (!profile) {
-    return <p style={{ padding: "20px" }}>Loading...</p>;
-  }
-
-  const { identity, activeEnrollment } = profile;
+  if (message) return <p>{message}</p>;
+  if (!student) return <p>Loading...</p>;
 
   return (
-    <div style={{ padding: "20px" }}>
+    <div>
       <h2>Student Profile</h2>
 
-      <h3>Identity</h3>
       <p>
-        <strong>Full Name:</strong> {identity.fullName}
+        <strong>Full Name:</strong> {student.fullName}
       </p>
       <p>
         <strong>Date of Birth:</strong>{" "}
-        {new Date(identity.dateOfBirth).toLocaleDateString()}
+        {new Date(student.dateOfBirth).toLocaleDateString()}
       </p>
       <p>
-        <strong>Gender:</strong> {identity.gender}
+        <strong>Gender:</strong> {student.gender}
       </p>
       <p>
-        <strong>Admission Number:</strong> {identity.admissionNumber}
+        <strong>Admission Number:</strong> {student.admissionNumber}
       </p>
       <p>
-        <strong>Identity Status:</strong> {identity.identityStatus}
+        <strong>Identity Status:</strong> {student.identityStatus}
       </p>
-
-      <h3>Active Enrollment</h3>
-      {activeEnrollment ? (
-        <>
-          <p>
-            <strong>Academic Year:</strong> {activeEnrollment.academicYearId}
-          </p>
-          <p>
-            <strong>Section:</strong> {activeEnrollment.sectionId}
-          </p>
-          <p>
-            <strong>Status:</strong> {activeEnrollment.enrollmentStatus}
-          </p>
-        </>
-      ) : (
-        <p>No active enrollment</p>
-      )}
     </div>
   );
-};
+}
 
 export default StudentProfilePage;

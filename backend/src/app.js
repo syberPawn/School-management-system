@@ -2,13 +2,13 @@ require("dotenv").config();
 
 const express = require("express");
 const connectDB = require("./config/database");
-const cors = require("cors")
+const cors = require("cors");
 
 const authRoutes = require("./modules/user/auth.routes");
 const userRoutes = require("./modules/user/user.routes");
 const academicStructureRoutes = require("./modules/academicStructure/academicStructure.routes");
 const studentManagementRoutes = require("./modules/studentManagement/studentManagement.routes");
-
+const teacherAssignmentRoutes = require("./modules/teacherAssignmentManagement/teacherAssignmentManagement.routes");
 
 const app = express();
 
@@ -23,7 +23,6 @@ app.use(
   }),
 );
 
-
 // Test Route
 app.get("/", (req, res) => {
   res.send("School Management System Backend Running");
@@ -34,7 +33,7 @@ app.use("/auth", authRoutes);
 app.use("/users", userRoutes);
 app.use("/", academicStructureRoutes);
 app.use("/", studentManagementRoutes);
-
+app.use("/", teacherAssignmentRoutes);
 
 // Start Server
 const PORT = process.env.PORT || 5000;
