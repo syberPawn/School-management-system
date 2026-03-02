@@ -12,6 +12,18 @@ import StudentIdentitiesPage from "./pages/StudentIdentitiesPage";
 import StudentEnrollmentsPage from "./pages/StudentEnrollmentsPage";
 import StudentProfilePage from "./pages/StudentProfilePage";
 import TeacherAssignmentPage from "./pages/teacherAssignmentPage";
+import TeacherLayout from "./pages/TeacherLayout";
+import TeacherAttendancePage from "./pages/TeacherAttendancePage";
+import AdminAttendancePage from "./pages/adminAttendancePage";
+import TeacherAttendanceViewPage from "./pages/TeacherAttendanceViewPage";
+import StudentLayout from "./pages/StudentLayout";
+import StudentAttendancePage from "./pages/StudentAttendancePage";
+import StudentAttendancePercentagePage from "./pages/studentAttendancePercentagePage";
+import TeacherSectionPercentagePage from "./pages/TeacherSectionPercentagePage";
+import ExaminationPage from "./pages/examinationPage";
+import TeacherMarksPage from "./pages/TeacherMarksPage";
+import TeacherMarksViewPage from "./pages/TeacherMarksViewPage";
+import StudentReportCardPage from "./pages/StudentReportCardPage";
 
 function App() {
   return (
@@ -37,25 +49,43 @@ function App() {
         <Route path="enrollments" element={<StudentEnrollmentsPage />} />
         <Route path="teacher-assignments" element={<TeacherAssignmentPage />} />
         <Route path="students/:id" element={<StudentProfilePage />} />
+        <Route path="attendance" element={<AdminAttendancePage />} />
+        <Route path="examination" element={<ExaminationPage />} />
       </Route>
 
       <Route
         path="/teacher"
         element={
           <ProtectedRoute allowedRoles={["TEACHER"]}>
-            <h1>Teacher Dashboard</h1>
+            <TeacherLayout />
           </ProtectedRoute>
         }
-      />
+      >
+        <Route path="attendance" element={<TeacherAttendancePage />} />{" "}
+        <Route path="attendance/view" element={<TeacherAttendanceViewPage />} />{" "}
+        <Route
+          path="attendance/percentage"
+          element={<TeacherSectionPercentagePage />}
+        />
+        <Route path="marks" element={<TeacherMarksPage />} />
+        <Route path="marks/view" element={<TeacherMarksViewPage />} />
+      </Route>
 
       <Route
         path="/student"
         element={
           <ProtectedRoute allowedRoles={["STUDENT"]}>
-            <h1>Student Dashboard</h1>
+            <StudentLayout />
           </ProtectedRoute>
         }
-      />
+      >
+        <Route path="attendance" element={<StudentAttendancePage />} />
+        <Route
+          path="attendance/percentage"
+          element={<StudentAttendancePercentagePage />}
+        />
+        <Route path="report-card" element={<StudentReportCardPage />} />
+      </Route>
 
       <Route path="/" element={<Login />} />
       <Route

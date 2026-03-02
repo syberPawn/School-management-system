@@ -156,7 +156,7 @@ const deactivate = async (req, res) => {
 const getAll = async (req, res) => {
   try {
     await verifyAuthenticated(req);
-    verifyRole(req, ["ADMIN"]);
+    verifyRole(req, ["ADMIN", "TEACHER", "STUDENT"]);
 
     const result = await listAcademicYears(req.query);
 

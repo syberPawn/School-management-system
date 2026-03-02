@@ -29,7 +29,10 @@ function AdminLayout() {
         <Link to="/admin/subjects">Subjects</Link> |{" "}
         <Link to="/admin/curriculum">Curriculum</Link> |{" "}
         <Link to="/admin/students">Students</Link> |{" "}
-        <Link to="/admin/enrollments">Enrollments</Link>
+        <Link to="/admin/enrollments">Enrollments</Link> |{" "}
+        <Link to="/admin/teacher-assignments">Teacher Assignments</Link>|{" "}
+        <Link to="/admin/attendance">Attendance</Link>|{" "}
+        <Link to="/admin/examination">Examination</Link>
       </div>
 
       <hr />

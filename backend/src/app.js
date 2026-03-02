@@ -9,6 +9,8 @@ const userRoutes = require("./modules/user/user.routes");
 const academicStructureRoutes = require("./modules/academicStructure/academicStructure.routes");
 const studentManagementRoutes = require("./modules/studentManagement/studentManagement.routes");
 const teacherAssignmentRoutes = require("./modules/teacherAssignmentManagement/teacherAssignmentManagement.routes");
+const attendanceManagementRoutes = require("./modules/attendanceManagement/attendanceManagement.routes");
+const examinationManagementRoutes = require("./modules/examinationManagement/examinationManagement.routes");
 
 const app = express();
 
@@ -34,6 +36,8 @@ app.use("/users", userRoutes);
 app.use("/", academicStructureRoutes);
 app.use("/", studentManagementRoutes);
 app.use("/", teacherAssignmentRoutes);
+app.use("/", attendanceManagementRoutes);
+app.use("/", examinationManagementRoutes);
 
 // Start Server
 const PORT = process.env.PORT || 5000;
