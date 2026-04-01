@@ -286,8 +286,15 @@ const getSectionAttendance = async ({
     };
   }
 
-  const attendance = await AttendanceEntry.find(query).sort({ date: 1 });
-
+  const attendance = await AttendanceEntry.find(query)
+    .populate({
+      path: "enrollmentId",
+      populate: {
+        path: "studentId",
+        model: "Student",
+      },
+    })
+    .sort({ date: 1 });
   return attendance;
 };
 

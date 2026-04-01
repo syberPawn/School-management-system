@@ -11,6 +11,9 @@ const studentManagementRoutes = require("./modules/studentManagement/studentMana
 const teacherAssignmentRoutes = require("./modules/teacherAssignmentManagement/teacherAssignmentManagement.routes");
 const attendanceManagementRoutes = require("./modules/attendanceManagement/attendanceManagement.routes");
 const examinationManagementRoutes = require("./modules/examinationManagement/examinationManagement.routes");
+const feeManagementRoutes = require("./modules/feeManagement/feeManagement.routes");
+const noticeManagementRoutes = require("./modules/noticeManagement/noticeManagement.routes");
+const dashboardAnalyticsRoutes = require("./modules/dashboardAnalytics/dashboardAnalytics.routes");
 
 const app = express();
 
@@ -38,6 +41,9 @@ app.use("/", studentManagementRoutes);
 app.use("/", teacherAssignmentRoutes);
 app.use("/", attendanceManagementRoutes);
 app.use("/", examinationManagementRoutes);
+app.use("/", feeManagementRoutes);
+app.use("/", noticeManagementRoutes);
+app.use("/", dashboardAnalyticsRoutes);
 
 // Start Server
 const PORT = process.env.PORT || 5000;

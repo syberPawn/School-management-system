@@ -144,8 +144,8 @@ const StudentReportCardPage = () => {
             </thead>
             <tbody>
               {reportCard.subjects.map((subject) => (
-                <tr key={subject.subjectId}>
-                  <td>{subject.subjectId}</td>
+                <tr key={subject.subjectName}>
+                  <td>{subject.subjectName}</td>
                   <td>{subject.marksObtained}</td>
                   <td>{subject.maxMarks}</td>
                 </tr>

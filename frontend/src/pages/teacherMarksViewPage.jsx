@@ -138,11 +138,13 @@ Load Students
   }, [academicYear, selectedSectionId]);
 
   const uniqueSectionIds = [
-    ...new Set(subjectAssignments.map((a) => a.sectionId)),
+    ...new Map(
+      subjectAssignments.map((a) => [a.sectionId._id, a.sectionId]),
+    ).values(),
   ];
 
   const filteredSubjects = subjectAssignments.filter(
-    (a) => a.sectionId === selectedSectionId,
+    (a) => a.sectionId._id === selectedSectionId,
   );
 
   return (
@@ -177,9 +179,9 @@ Load Students
               }}
             >
               <option value="">-- Select Section --</option>
-              {uniqueSectionIds.map((sectionId) => (
-                <option key={sectionId} value={sectionId}>
-                  {sectionId}
+              {uniqueSectionIds.map((section) => (
+                <option key={section._id} value={section._id}>
+                  {section.name}
                 </option>
               ))}
             </select>
@@ -198,8 +200,8 @@ Load Students
             >
               <option value="">-- Select Subject --</option>
               {filteredSubjects.map((assignment) => (
-                <option key={assignment._id} value={assignment.subjectId}>
-                  {assignment.subjectId}
+                <option key={assignment._id} value={assignment.subjectId._id}>
+                  {assignment.subjectId.name}
                 </option>
               ))}
             </select>
@@ -235,7 +237,7 @@ Load Students
                 <table border="1" cellPadding="8">
                   <thead>
                     <tr>
-                      <th>Enrollment ID</th>
+                      <th>Student Name</th>
                       <th>Marks</th>
                     </tr>
                   </thead>
@@ -247,7 +249,7 @@ Load Students
 
                       return (
                         <tr key={student.enrollmentId}>
-                          <td>{student.enrollmentId}</td>
+                          <td>{student.fullName}</td>
                           <td>
                             {markRecord ? markRecord.marks : "Not Submitted"}
                           </td>

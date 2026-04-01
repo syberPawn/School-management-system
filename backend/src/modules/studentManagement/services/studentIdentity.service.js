@@ -1,4 +1,5 @@
 const Student = require("../models/students.model");
+const { createUser } = require("../../user/services/user.service");
 
 /*
   ======================================
@@ -22,10 +23,10 @@ class UnauthorizedStudentProfileAccessError extends Error {}
   Implements FR-SM-01
 */
 const createStudentIdentity = async (data, adminId) => {
-  const { userId, fullName, dateOfBirth, gender, admissionNumber } = data;
+  const { fullName, dateOfBirth, gender, admissionNumber } = data;
 
   // 1️⃣ Required Validation
-  if (!userId || !fullName || !dateOfBirth || !gender || !admissionNumber) {
+  if (!fullName || !dateOfBirth || !gender || !admissionNumber) {
     throw new StudentIdentityValidationError(
       "Missing required student identity fields",
     );
@@ -39,9 +40,29 @@ const createStudentIdentity = async (data, adminId) => {
     );
   }
 
+  // Generate username and password for student login
+  const username = admissionNumber;
+  const password = new Date(dateOfBirth)
+    .toISOString()
+    .slice(0, 10)
+    .replace(/-/g, "");
+
+  // Build admin context required by user service
+  const adminContext = {
+    userId: adminId,
+    role: "ADMIN",
+  };
+
+  // Create USER account for student
+  const user = await createUser(adminContext, {
+    username,
+    password,
+    role: "STUDENT",
+  });
+
   // 3️⃣ Create Identity (identityStatus forced to ACTIVE)
   const student = await Student.create({
-    userId,
+    userId: user.userId,
     fullName,
     dateOfBirth,
     gender,

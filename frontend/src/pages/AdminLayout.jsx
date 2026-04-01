@@ -25,14 +25,19 @@ function AdminLayout() {
         <Link to="/admin/users">Users</Link> |{" "}
         <Link to="/admin/academic-years">Academic Years</Link> |{" "}
         <Link to="/admin/grades">Grades</Link> |{" "}
-        <Link to="/admin/sections">Sections</Link> |{" "}
         <Link to="/admin/subjects">Subjects</Link> |{" "}
         <Link to="/admin/curriculum">Curriculum</Link> |{" "}
         <Link to="/admin/students">Students</Link> |{" "}
         <Link to="/admin/enrollments">Enrollments</Link> |{" "}
         <Link to="/admin/teacher-assignments">Teacher Assignments</Link>|{" "}
         <Link to="/admin/attendance">Attendance</Link>|{" "}
-        <Link to="/admin/examination">Examination</Link>
+        <Link to="/admin/examination">Examination</Link>|{" "}
+        <Link to="/admin/fee-summary">Fee Summary</Link>|{" "}
+        <Link to="/admin/fees">Fee Structure</Link>|{" "}
+        <Link to="/admin/fee-payments">Fee Payments</Link>| |{" "}
+        <Link to="/admin/student-fees">Student Fee Status</Link>|{" "}
+        <Link to="/admin/notices">Notice Management</Link>{" "}
+        <Link to="/admin/dashboard">Dashboard</Link>
       </div>
 
       <hr />

@@ -377,7 +377,9 @@ const getTeacherAssignments = async ({ teacherId, academicYearId }) => {
   const subjectAssignments = await SubjectTeacherAssignment.find({
     teacherId,
     academicYearId,
-  });
+  })
+    .populate("subjectId", "name")
+    .populate("sectionId", "name");
 
   return {
     classAssignments,

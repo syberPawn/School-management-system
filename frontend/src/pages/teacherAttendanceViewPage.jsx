@@ -108,7 +108,8 @@ const TeacherAttendanceViewPage = () => {
 
             {entries.map((entry) => (
               <div key={entry._id}>
-                Enrollment ID: {entry.enrollmentId} | Status: {entry.status}
+                Student: {entry.enrollmentId?.studentId?.fullName} | Status:{" "}
+                {entry.status}
               </div>
             ))}
           </div>

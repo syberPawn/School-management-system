@@ -6,6 +6,7 @@ const AcademicYear = require("../../academicStructure/models/academicYear.model"
 const ExamInstance = require("../models/examInstance.model");
 const ExamSubjectScope = require("../models/examSubjectScope.model");
 const ExamMark = require("../models/examMark.model");
+const Subject = require("../../academicStructure/models/subject.model");
 
 /*
   ==============================
@@ -94,17 +95,26 @@ const generateReportCard = async ({ userId, examInstanceId }) => {
   */
 
   const academicYear = await AcademicYear.findById(examInstance.academicYearId);
+  const subjects = [];
+
+  for (const entry of marks) {
+    const subject = await Subject.findById(entry.subjectId);
+
+    const subjectName = subject?.name || "Unknown";
+
+    subjects.push({
+      subjectName,
+      marksObtained: entry.marks,
+      maxMarks: 100,
+    });
+  }
 
   return {
     student,
     academicYear,
     section,
     examInstance,
-    subjects: marks.map((entry) => ({
-      subjectId: entry.subjectId,
-      marksObtained: entry.marks,
-      maxMarks: 100,
-    })),
+    subjects,
     totalMarks,
     percentage,
   };

@@ -256,7 +256,10 @@ const listStudents = async (filters, requester) => {
     enrollmentQuery.sectionId = sectionId;
   }
 
-  const enrollments = await Enrollment.find(enrollmentQuery);
+  const enrollments = await Enrollment.find(enrollmentQuery).populate(
+    "sectionId",
+    "name",
+  );
 
   const studentIds = enrollments.map((e) => e.studentId);
 
@@ -282,7 +285,8 @@ const listStudents = async (filters, requester) => {
       studentId: student._id,
       fullName: student.fullName,
       admissionNumber: student.admissionNumber,
-      sectionId: enrollment.sectionId,
+      sectionId: enrollment.sectionId?._id,
+      sectionName: enrollment.sectionId?.name,
       enrollmentStatus: enrollment.enrollmentStatus,
       identityStatus: student.identityStatus,
     };

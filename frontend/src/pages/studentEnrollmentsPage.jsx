@@ -1,5 +1,3 @@
-
-
 // export default StudentEnrollmentsPage;
 import { useEffect, useState } from "react";
 import { fetchAcademicYears } from "../api/academicYear.api";
@@ -12,6 +10,7 @@ import {
   updateEnrollmentClass,
 } from "../api/enrollment.api";
 import { fetchStudents } from "../api/student.api";
+import { fetchAllSections } from "../api/section.api";
 
 function StudentEnrollmentsPage() {
   const [years, setYears] = useState([]);
@@ -32,28 +31,114 @@ function StudentEnrollmentsPage() {
   const [searchAdmissionNumber, setSearchAdmissionNumber] = useState("");
   const [enrollmentList, setEnrollmentList] = useState([]);
 
-  const loadEnrollmentList = async () => {
-    if (!selectedYearId) return;
+  const [studentSearch, setStudentSearch] = useState("");
+  const [filteredStudents, setFilteredStudents] = useState([]);
+  const [showDropdown, setShowDropdown] = useState(false);
 
+  const [nameSuggestions, setNameSuggestions] = useState([]);
+  const [showNameDropdown, setShowNameDropdown] = useState(false);
+
+  const [admissionSuggestions, setAdmissionSuggestions] = useState([]);
+  const [showAdmissionDropdown, setShowAdmissionDropdown] = useState(false);
+
+  const [baseEnrollmentList, setBaseEnrollmentList] = useState([]);
+
+  const [globalSearch, setGlobalSearch] = useState("");
+  const [globalSuggestions, setGlobalSuggestions] = useState([]);
+  const [showGlobalDropdown, setShowGlobalDropdown] = useState(false);
+
+  //SMART SEARCH ADMISSION AND NAME
+
+  useEffect(() => {
+    if (!globalSearch.trim()) {
+      setGlobalSuggestions([]);
+      return;
+    }
+
+    const value = globalSearch.toLowerCase();
+
+    const filtered = baseEnrollmentList.filter(
+      (item) =>
+        item.fullName.toLowerCase().includes(value) ||
+        item.admissionNumber.toLowerCase().includes(value),
+    );
+
+    setGlobalSuggestions(filtered);
+  }, [globalSearch, baseEnrollmentList]);
+
+  //LIST SEARCHING
+  useEffect(() => {
+    if (!searchName.trim()) {
+      setNameSuggestions([]);
+      return;
+    }
+
+    const filtered = baseEnrollmentList.filter((item) =>
+      item.fullName.toLowerCase().includes(searchName.toLowerCase()),
+    );
+
+    setNameSuggestions(filtered);
+  }, [searchName, enrollmentList]);
+
+  useEffect(() => {
+    if (!searchAdmissionNumber.trim()) {
+      setAdmissionSuggestions([]);
+      return;
+    }
+
+    const filtered = baseEnrollmentList.filter((item) =>
+      item.admissionNumber
+        .toLowerCase()
+        .includes(searchAdmissionNumber.toLowerCase()),
+    );
+
+    setAdmissionSuggestions(filtered);
+  }, [searchAdmissionNumber, enrollmentList]);
+
+  //ENROLLING STUDENT SEARCH
+
+  useEffect(() => {
+    if (!studentSearch.trim()) {
+      setFilteredStudents([]);
+      return;
+    }
+
+    const filtered = students.filter((student) =>
+      `${student.fullName} ${student.admissionNumber}`
+        .toLowerCase()
+        .includes(studentSearch.toLowerCase()),
+    );
+
+    setFilteredStudents(filtered);
+  }, [studentSearch, students]);
+
+  const loadEnrollmentList = async (overrideParams = {}) => {
     try {
       const params = {
         academicYearId: selectedYearId,
+        ...overrideParams, // 👈 override when needed
       };
 
       if (selectedSectionId) {
         params.sectionId = selectedSectionId;
       }
 
-      if (searchName) {
+      // only use state if override not provided
+      if (!overrideParams.name && searchName) {
         params.name = searchName;
       }
 
-      if (searchAdmissionNumber) {
+      if (!overrideParams.admissionNumber && searchAdmissionNumber) {
         params.admissionNumber = searchAdmissionNumber;
       }
 
       const data = await fetchStudentsByEnrollment(params);
       setEnrollmentList(data);
+
+      // store base list ONLY if it's initial load (no search)
+      if (!overrideParams.name && !overrideParams.admissionNumber) {
+        setBaseEnrollmentList(data);
+      }
     } catch (error) {
       console.error("Failed to load enrollment list");
     }
@@ -105,6 +190,8 @@ function StudentEnrollmentsPage() {
       if (activeYear) {
         setSelectedYearId(activeYear._id);
         loadGrades(activeYear._id);
+
+        loadEnrollmentList({ academicYearId: activeYear._id });
       }
     } catch (error) {
       console.error("Failed to load academic years");
@@ -267,18 +354,64 @@ function StudentEnrollmentsPage() {
         <div>
           <label>Select Student:</label>
           <br />
-          <select
-            value={selectedStudentId}
-            onChange={(e) => setSelectedStudentId(e.target.value)}
-            required
-          >
-            <option value="">-- Select Student --</option>
-            {students.map((student) => (
-              <option key={student._id} value={student._id}>
-                {student.fullName} ({student.admissionNumber})
-              </option>
-            ))}
-          </select>
+          <div style={{ position: "relative", width: "300px" }}>
+            <input
+              type="text"
+              placeholder="Search student..."
+              value={studentSearch}
+              onChange={(e) => {
+                setStudentSearch(e.target.value);
+                setShowDropdown(true);
+                setSelectedStudentId(""); // reset selection
+              }}
+              onFocus={() => setShowDropdown(true)}
+              onBlur={() => {
+                // delay to allow click selection
+                setTimeout(() => setShowDropdown(false), 150);
+              }}
+              style={{ width: "100%", padding: "8px" }}
+              required
+            />
+
+            {showDropdown && filteredStudents.length > 0 && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: "100%",
+                  left: 0,
+                  right: 0,
+                  border: "1px solid #ccc",
+                  background: "#fff",
+                  maxHeight: "200px",
+                  overflowY: "auto",
+                  zIndex: 1000,
+                }}
+              >
+                {filteredStudents.map((student) => (
+                  <div
+                    key={student._id}
+                    onMouseDown={() => {
+                      setSelectedStudentId(student._id);
+                      setStudentSearch(
+                        `${student.fullName} (${student.admissionNumber})`,
+                      );
+                      setShowDropdown(false);
+                    }}
+                    style={{
+                      padding: "8px",
+                      cursor: "pointer",
+                    }}
+                    onMouseEnter={(e) =>
+                      (e.target.style.background = "#f0f0f0")
+                    }
+                    onMouseLeave={(e) => (e.target.style.background = "#fff")}
+                  >
+                    {student.fullName} ({student.admissionNumber})
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         <br />
@@ -292,30 +425,74 @@ function StudentEnrollmentsPage() {
 
       <form onSubmit={handleSearch}>
         <div>
-          <label>Search by Name:</label>
+          <label>Search Student (Name or Admission No):</label>
           <br />
-          <input
-            type="text"
-            value={searchName}
-            onChange={(e) => setSearchName(e.target.value)}
-          />
+          <div style={{ position: "relative", width: "300px" }}>
+            <input
+              type="text"
+              value={globalSearch}
+              placeholder="Type name or admission number..."
+              onChange={(e) => {
+                setGlobalSearch(e.target.value);
+                setShowGlobalDropdown(true);
+              }}
+              onFocus={() => setShowGlobalDropdown(true)}
+              onBlur={() => setShowGlobalDropdown(false)}
+            />
+
+            {showGlobalDropdown && globalSuggestions.length > 0 && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: "100%",
+                  left: 0,
+                  right: 0,
+                  border: "1px solid #ccc",
+                  background: "#fff",
+                  maxHeight: "200px",
+                  overflowY: "auto",
+                  zIndex: 1000,
+                }}
+              >
+                {globalSuggestions.map((item) => (
+                  <div
+                    key={item.studentId}
+                    onMouseDown={() => {
+                      const inputValue = globalSearch.toLowerCase();
+
+                      setGlobalSearch(
+                        `${item.fullName} (${item.admissionNumber})`,
+                      );
+                      setShowGlobalDropdown(false);
+
+                      if (
+                        item.admissionNumber.toLowerCase().includes(inputValue)
+                      ) {
+                        loadEnrollmentList({
+                          admissionNumber: item.admissionNumber,
+                        });
+                      } else {
+                        loadEnrollmentList({
+                          name: item.fullName,
+                        });
+                      }
+                    }}
+                    style={{ padding: "8px", cursor: "pointer" }}
+                  >
+                    {item.fullName} ({item.admissionNumber})
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         <br />
 
-        <div>
-          <label>Search by Admission Number:</label>
-          <br />
-          <input
-            type="text"
-            value={searchAdmissionNumber}
-            onChange={(e) => setSearchAdmissionNumber(e.target.value)}
-          />
-        </div>
+        
 
         <br />
 
-        <button type="submit">Search</button>
       </form>
 
       <br />
@@ -336,24 +513,7 @@ function StudentEnrollmentsPage() {
             <tr key={item.studentId}>
               <td>{item.fullName}</td>
               <td>{item.admissionNumber}</td>
-              <td>
-                {item.enrollmentStatus === "ACTIVE" ? (
-                  <select
-                    value={item.sectionId}
-                    onChange={(e) =>
-                      handleClassChange(item.enrollmentId, e.target.value)
-                    }
-                  >
-                    {sections.map((section) => (
-                      <option key={section._id} value={section._id}>
-                        {section.name}
-                      </option>
-                    ))}
-                  </select>
-                ) : (
-                  item.sectionId
-                )}
-              </td>
+              <td>{item.sectionName || "N/A"}</td>
               <td>
                 <select
                   value={item.enrollmentStatus}

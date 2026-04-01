@@ -24,6 +24,17 @@ import ExaminationPage from "./pages/examinationPage";
 import TeacherMarksPage from "./pages/TeacherMarksPage";
 import TeacherMarksViewPage from "./pages/TeacherMarksViewPage";
 import StudentReportCardPage from "./pages/StudentReportCardPage";
+import FeeStructurePage from "./pages/feeStructurePage";
+import FeePaymentPage from "./pages/feePaymentPage";
+import StudentFeesPage from "./pages/studentFeesPage";
+import SectionFeeSummaryPage from "./pages/sectionFeeSummaryPage";
+import AdminStudentFeeStatusPage from "./pages/adminStudentFeeStatusPage";
+import AdminNoticesPage from "./pages/adminNoticesPage";
+import TeacherNoticesPage from "./pages/teacherNoticesPage";
+import StudentNoticesPage from "./pages/studentNoticesPage";
+import AdminDashboardPage from "./pages/adminDashboardPage";
+import TeacherDashboardPage from "./pages/teacherDashboardPage";
+import StudentDashboardPage from "./pages/studentDashboardPage";
 
 function App() {
   return (
@@ -51,6 +62,12 @@ function App() {
         <Route path="students/:id" element={<StudentProfilePage />} />
         <Route path="attendance" element={<AdminAttendancePage />} />
         <Route path="examination" element={<ExaminationPage />} />
+        <Route path="fees" element={<FeeStructurePage />} />
+        <Route path="fee-payments" element={<FeePaymentPage />} />
+        <Route path="fee-summary" element={<SectionFeeSummaryPage />} />
+        <Route path="student-fees" element={<AdminStudentFeeStatusPage />} />
+        <Route path="notices" element={<AdminNoticesPage />} />
+        <Route path="dashboard" element={<AdminDashboardPage />} />
       </Route>
 
       <Route
@@ -69,6 +86,8 @@ function App() {
         />
         <Route path="marks" element={<TeacherMarksPage />} />
         <Route path="marks/view" element={<TeacherMarksViewPage />} />
+        <Route path="notices" element={<TeacherNoticesPage />} />
+        <Route path="dashboard" element={<TeacherDashboardPage />} />
       </Route>
 
       <Route
@@ -85,6 +104,9 @@ function App() {
           element={<StudentAttendancePercentagePage />}
         />
         <Route path="report-card" element={<StudentReportCardPage />} />
+        <Route path="fees" element={<StudentFeesPage />} />
+        <Route path="notices" element={<StudentNoticesPage />} />
+        <Route path="dashboard" element={<StudentDashboardPage />} />
       </Route>
 
       <Route path="/" element={<Login />} />

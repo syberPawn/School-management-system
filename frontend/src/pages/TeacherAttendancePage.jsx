@@ -167,8 +167,7 @@ const TeacherAttendancePage = () => {
 
           {students.map((enrollment) => (
             <div key={enrollment.enrollmentId} style={{ marginBottom: "10px" }}>
-              <span>Enrollment ID: {enrollment.enrollmentId}</span>
-
+              <span>Student: {enrollment.fullName}</span>
               <div>
                 <label>
                   <input

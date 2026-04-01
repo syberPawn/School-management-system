@@ -29,3 +29,8 @@ export const deactivateSection = async (id) => {
   const response = await axios.patch(`/sections/${id}/deactivate`);
   return response.data;
 };
+
+export const fetchAllSections = async () => {
+  const response = await axios.get("/sections");
+  return response.data;
+};

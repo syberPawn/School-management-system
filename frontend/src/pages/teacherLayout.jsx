@@ -26,7 +26,9 @@ function TeacherLayout() {
         <Link to="/teacher/attendance/view">View Attendance</Link>|{" "}
         <Link to="/teacher/attendance/percentage">Section Percentage</Link>|{" "}
         <Link to="/teacher/marks">Submit Marks</Link>|{" "}
-        <Link to="/teacher/marks/view">View Marks</Link>
+        <Link to="/teacher/marks/view">View Marks</Link>|{" "}
+        <Link to="/teacher/notices">Notices</Link>|{" "}
+        <Link to="/teacher/dashboard">Dashboard</Link>
       </div>
 
       <hr />

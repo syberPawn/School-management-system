@@ -24,7 +24,10 @@ function StudentLayout() {
       <div style={{ marginBottom: "20px" }}>
         <Link to="/student/attendance">My Attendance</Link> |{" "}
         <Link to="/student/attendance/percentage">Attendance Percentage</Link>|{" "}
-        <Link to="/student/report-card">Report Card</Link>
+        <Link to="/student/report-card">Report Card</Link> |{" "}
+        <Link to="/student/fees">My Fees</Link>|{" "}
+        <Link to="/student/notices">Notices</Link>|{" "}
+        <Link to="/student/dashboard">Dashboard</Link>
       </div>
 
       <hr />

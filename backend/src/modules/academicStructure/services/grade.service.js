@@ -39,27 +39,26 @@ const createGrade = async (data, adminId) => {
     throw new AcademicYearNotFoundError("Academic year not found");
   }
 
-  try {
-    // 3️⃣ Create grade
-    const grade = await Grade.create({
-      name,
-      academicYearId,
-      status: "ACTIVE",
-      createdBy: adminId,
-      updatedBy: adminId,
-    });
+  // 3️⃣ Check if grade already exists
+  const existingGrade = await Grade.findOne({
+    name,
+    academicYearId,
+  });
 
-    return grade;
-  } catch (error) {
-    // 4️⃣ Handle duplicate key error (Mongo error code 11000)
-    if (error.code === 11000) {
-      throw new DuplicateGradeError(
-        "Grade name must be unique within the academic year",
-      );
-    }
-
-    throw error;
+  if (existingGrade) {
+    return existingGrade;
   }
+
+  // 4️⃣ Create new grade
+  const grade = await Grade.create({
+    name,
+    academicYearId,
+    status: "ACTIVE",
+    createdBy: adminId,
+    updatedBy: adminId,
+  });
+
+  return grade;
 };
 
 const deactivateGrade = async (gradeId) => {

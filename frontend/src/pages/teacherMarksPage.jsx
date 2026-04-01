@@ -167,13 +167,15 @@ Submit Marks
   Derived Unique Sections
   =====================================
   */
-  const uniqueSectionIds = [
-    ...new Set(subjectAssignments.map((a) => a.sectionId)),
+  const uniqueSections = [
+    ...new Map(
+      subjectAssignments.map((a) => [a.sectionId?._id, a.sectionId]),
+    ).values(),
   ];
 
-  const filteredSubjects = subjectAssignments.filter(
-    (a) => a.sectionId === selectedSectionId,
-  );
+const filteredSubjects = subjectAssignments.filter(
+  (a) => a.sectionId?._id === selectedSectionId,
+);
 
   return (
     <div style={{ padding: "20px" }}>
@@ -207,9 +209,9 @@ Submit Marks
               }}
             >
               <option value="">-- Select Section --</option>
-              {uniqueSectionIds.map((sectionId) => (
-                <option key={sectionId} value={sectionId}>
-                  {sectionId}
+              {uniqueSections.map((section) => (
+                <option key={section?._id} value={section?._id}>
+                  {section?.name}
                 </option>
               ))}
             </select>
@@ -227,9 +229,17 @@ Submit Marks
               disabled={!selectedSectionId}
             >
               <option value="">-- Select Subject --</option>
-              {filteredSubjects.map((assignment) => (
-                <option key={assignment._id} value={assignment.subjectId}>
-                  {assignment.subjectId}
+
+              {[
+                ...new Map(
+                  filteredSubjects.map((a) => [a.subjectId?._id, a]),
+                ).values(),
+              ].map((assignment) => (
+                <option
+                  key={assignment.subjectId?._id}
+                  value={assignment.subjectId?._id}
+                >
+                  {assignment.subjectId?.name}
                 </option>
               ))}
             </select>
@@ -267,7 +277,7 @@ Submit Marks
                     key={enrollment.enrollmentId}
                     style={{ marginBottom: "10px" }}
                   >
-                    <span>Enrollment ID: {enrollment.enrollmentId}</span>
+                    <span>Student: {enrollment.fullName}</span>
 
                     <div>
                       <input

@@ -1,34 +1,12 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { createStudent } from "../api/student.api";
-import { fetchAllUsers } from "../api/user.api";
 
 function StudentIdentitiesPage() {
-  const [users, setUsers] = useState([]);
-  const [selectedUserId, setSelectedUserId] = useState("");
   const [fullName, setFullName] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState("");
   const [gender, setGender] = useState("MALE");
   const [admissionNumber, setAdmissionNumber] = useState("");
   const [message, setMessage] = useState("");
-
-  /*
-  =====================================
-  Load Users (Role = STUDENT)
-  =====================================
-  */
-  const loadUsers = async () => {
-    try {
-      const data = await fetchAllUsers();
-      const studentUsers = data.filter((user) => user.role === "STUDENT");
-      setUsers(studentUsers);
-    } catch (error) {
-      console.error("Failed to load users");
-    }
-  };
-
-  useEffect(() => {
-    loadUsers();
-  }, []);
 
   /*
   =====================================
@@ -41,7 +19,6 @@ function StudentIdentitiesPage() {
 
     try {
       await createStudent({
-        userId: selectedUserId,
         fullName,
         dateOfBirth,
         gender,
@@ -66,25 +43,6 @@ function StudentIdentitiesPage() {
       <h2>Student Identity Management</h2>
 
       <form onSubmit={handleSubmit}>
-        <div>
-          <label>Select Student User:</label>
-          <br />
-          <select
-            value={selectedUserId}
-            onChange={(e) => setSelectedUserId(e.target.value)}
-            required
-          >
-            <option value="">-- Select Student --</option>
-            {users.map((user) => (
-              <option key={user._id} value={user._id}>
-                {user.username}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <br />
-
         <div>
           <label>Full Name:</label>
           <br />
